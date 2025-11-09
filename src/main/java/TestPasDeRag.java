@@ -27,15 +27,18 @@ import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 public class TestPasDeRag {
+
     public static void main(String[] args) throws Exception {
         String cle = System.getenv("GEMINI_KEY");
 
-        ChatModel model = GoogleAiGeminiChatModel
-                .builder()
+        ChatModel model = GoogleAiGeminiChatModel.builder()
                 .apiKey(cle)
                 .modelName("gemini-2.0-flash-exp")
                 .temperature(0.3)
@@ -48,7 +51,6 @@ public class TestPasDeRag {
         Path path = Paths.get(fileUrl.toURI());
 
         DocumentParser documentParser = new ApacheTikaDocumentParser();
-
         Document document = FileSystemDocumentLoader.loadDocument(path, documentParser);
 
         DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
@@ -66,25 +68,19 @@ public class TestPasDeRag {
                 .minScore(0.5)
                 .build();
 
-        // Notre QueryRouter personnalisé
         QueryRouter queryRouter = new QueryRouter() {
             @Override
             public Collection<ContentRetriever> route(Query query) {
-                PromptTemplate promptTemplate = PromptTemplate.from(
-                        "Est-ce que la requête `{{requete}}` porte sur l'IA? Réponds seulement par 'oui', 'non' ou 'peut-être'."
+                PromptTemplate template = PromptTemplate.from(
+                        "Tâche: dire si la requête suivante concerne l'intelligence artificielle.\n" +
+                                "Requête: {{requete}}\n" +
+                                "Réponds uniquement par un seul mot en minuscules: oui, non ou peut-être. N'ajoute rien d'autre."
                 );
-
-                Prompt prompt = promptTemplate.apply(Map.of(
-                        "requete", query.text()
-                ));
-
+                Prompt prompt = template.apply(Map.of("requete", query.text()));
                 String reponse = model.chat(prompt.text());
-
-                if (reponse.toLowerCase().contains("non")) {
-                    return Collections.emptyList();
-                }
-
-                return Collections.singletonList(retriever);
+                return reponse.toLowerCase().contains("non")
+                        ? Collections.emptyList()
+                        : Collections.singletonList(retriever);
             }
         };
 
@@ -105,20 +101,24 @@ public class TestPasDeRag {
 
     private static void conversationAvec(Assistant assistant) {
         try (Scanner scanner = new Scanner(System.in)) {
+            System.out.println("──────────────────────────────────────────────────");
+            System.out.println("Assistant RAG prêt. Saisissez votre question.");
+            System.out.println("Tapez « fin » pour quitter.");
+            System.out.println("──────────────────────────────────────────────────");
             while (true) {
-                System.out.println("==================================================");
-                System.out.println("Posez votre question : ");
+                System.out.print("Vous > ");
                 String question = scanner.nextLine();
-                if (question.isBlank()) {
-                    continue;
+                if (!question.isBlank()) {
+                    if ("fin".equalsIgnoreCase(question)) {
+                        System.out.println("Au revoir.");
+                        return;
+                    }
+                    String reponse = assistant.chat(question);
+                    System.out.println("Assistant > " + reponse);
+                    System.out.println("──────────────────────────────────────────────────");
+                } else {
+                    System.out.println("Veuillez entrer une question ou « fin » pour quitter.");
                 }
-                System.out.println("==================================================");
-                if ("fin".equalsIgnoreCase(question)) {
-                    break;
-                }
-                String reponse = assistant.chat(question);
-                System.out.println("Assistant : " + reponse);
-                System.out.println("==================================================");
             }
         }
     }
