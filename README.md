@@ -3,7 +3,6 @@
 
 **Formation :** Master Ingénierie Logicielle et Intelligence Artificielle  
 **Établissement :**  Université Côte d'Azur  
-**Module :** Intelligence Artificielle et Systèmes Distribués  
 **Année :** 2025-2026  
 **Encadrant :** M. Richard Grin
 ---
