@@ -1,5 +1,12 @@
 # TP4 - Système RAG (Retrieval-Augmented Generation)
+## 📋 Contexte Académique
 
+**Formation :** Master Ingénierie Logicielle et Intelligence Artificielle  
+**Établissement :**  Université Côte d'Azur  
+**Module :** Intelligence Artificielle et Systèmes Distribués  
+**Année :** 2025-2026  
+**Encadrant :** M. Richard Grin
+---
 ##  Description du Projet
 
 Ce projet implémente plusieurs variantes d'un système **RAG (Retrieval-Augmented Generation)** en Java utilisant la bibliothèque **LangChain4j** et le modèle de langage **Google Gemini**. Le RAG permet d'améliorer les réponses d'un modèle de langage en lui fournissant des informations contextuelles pertinentes extraites d'un corpus de documents.
